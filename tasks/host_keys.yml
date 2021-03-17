@@ -1,0 +1,70 @@
+---
+
+
+- name: 0-Check host required variables
+  fail: msg="Variable '{{ item.checkvar }}' is not defined - {{ item.checkmsg }}"
+  when: item.checkvar not in vars
+  with_items: "{{ host_required_vars }}"
+
+- name: load actual public host key
+  set_fact:
+    ssh_public_key: "{{ lookup('file', '/etc/ssh/{{ sshd_certfile }}.pub') }}"
+
+- name: generate signed host key
+  register: signed_host_key
+  uri:
+    url: "{{ vault_addr }}/v1/{{ host_ssh_path }}/sign/{{ host_ssh_role }}"
+    validate_certs: no
+    method: POST
+    body: "{ \"cert_type\": \"host\", \"public_key\": \"{{ ssh_public_key }}\" }"
+    body_format: json
+    return_content: yes
+    headers:
+      X-Vault-Request: "true"
+      X-Vault-Token: "{{ vault_login.json.auth.client_token }}"
+
+- name: update signed host key certificate
+  copy:
+    content: "{{ signed_host_key.json.data.signed_key }}"
+    dest: "/etc/ssh/{{ sshd_certfile }}_signed.pub"
+    mode: "0640"
+    owner: root
+    group: root
+  notify:
+    - restart sshd
+
+- name: ensure ssh config with enabled host key
+  lineinfile:
+    regexp: "^HostKey"
+    line: "HostKey /etc/ssh/{{ sshd_certfile }}"
+    dest: /etc/ssh/sshd_config
+    mode: 0640
+  notify:
+    - restart sshd
+
+- name: update ssh config with signed host certificate from vault
+  lineinfile:
+    regexp: "^HostCertificate"
+    line: "HostCertificate /etc/ssh/{{ sshd_certfile }}_signed.pub"
+    dest: /etc/ssh/sshd_config
+    mode: 0640
+  notify:
+    - restart sshd
+
+- name: load trusted ca from vault
+  register: vault_trusted_keys
+  uri:
+    url: "{{ vault_addr }}/v1/{{ host_ssh_path }}/config/ca"
+    body_format: json
+    return_content: true
+    headers:
+      X-Vault-Request: "true"
+      X-Vault-Token: "{{ vault_login.json.auth.client_token }}"
+
+- name: add trust authority configuration
+  connection: local
+  become: no
+  lineinfile:
+    dest: ~/.ssh/known_hosts
+    regexp: "^@cert-authority *"
+    line: "@cert-authority * {{ vault_trusted_keys.json.data.public_key }}"

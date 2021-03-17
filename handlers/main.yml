@@ -1,0 +1,7 @@
+---
+# handlers file for vault-ssh-signed-keys
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted

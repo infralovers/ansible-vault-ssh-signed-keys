@@ -1,0 +1,4 @@
+---
+# defaults file for vault-ssh-signed-keys
+
+sshd_certfile: "ssh_host_rsa_key"
