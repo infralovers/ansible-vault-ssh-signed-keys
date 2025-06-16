@@ -7,6 +7,9 @@
     path: "{{ user_ssh_path }}/config/ca"
     token: "{{ vault_token }}"
 
+- name: debug
+  debug: var=vault_trusted_keys
+
 - name: store trusted ca keys
   copy:
     content: "{{ vault_trusted_keys.data.public_key }}"
