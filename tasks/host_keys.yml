@@ -16,6 +16,7 @@
       public_key: "{{ ssh_public_key }}"
 
 - name: update signed host key certificate
+  become: true
   copy:
     content: "{{ signed_host_key.data.signed_key }}"
     dest: "/etc/ssh/{{ sshd_certfile }}_signed.pub"
@@ -26,6 +27,7 @@
     - restart sshd
 
 - name: ensure ssh config with enabled host key
+  become: true
   lineinfile:
     regexp: "^HostKey"
     line: "HostKey /etc/ssh/{{ sshd_certfile }}"
@@ -35,6 +37,7 @@
     - restart sshd
 
 - name: update ssh config with signed host certificate from vault
+  become: true
   lineinfile:
     regexp: "^HostCertificate"
     line: "HostCertificate /etc/ssh/{{ sshd_certfile }}_signed.pub"
