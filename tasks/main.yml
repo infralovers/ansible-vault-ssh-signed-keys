@@ -1,36 +1,21 @@
 ---
 
-- name: 0-Check required variables
-  fail: msg="Variable '{{ item }}' is not defined"
-  when: item not in vars
-  with_items: "{{ required_vars }}"
-
-- name: check vault status
-  uri:
-    url: "{{ vault_addr }}/v1/sys/seal-status"
-#    client_cert: "{{ vault_certfile }}"
-    validate_certs: no
-    method: GET
-    body_format: json
-    return_content: yes
-  register: vault_seal_status
-
-- name: fail if the vault server is not awailable
-  fail:
-    msg: "the vault server is sealed"
-  when: vault_seal_status.json.sealed
-
 - name: login to vault with approle
-  register: vault_login
-  uri:
-    url: "{{vault_addr}}/v1/auth/approle/login"
-    validate_certs: no
-    method: POST
-    body: "{ \"role_id\": \"{{ vault_host_role_id}}\", \"secret_id\": \"{{ vault_host_secret_id }}\"}"
-    body_format: json
-    return_content: yes
-    headers:
-      X-Vault-Request: "true"
+  when: vault_host_secret_id is defined and vault_host_role_id is defined and vault_host_secret_id | length > 0 and vault_host_role_id | length > 0
+  block:
+  - name: login approle
+    delegate_to: localhost
+    become: false
+    register: login_data
+    community.hashi_vault.vault_login:
+      auth_method: approle
+      mount_point: pipeline_approle
+      role_id: "{{ vault_host_role_id }}"
+      secret_id: "{{ vault_host_secret_id }}"
+
+  - name: "Vault - set vault token"
+    set_fact:
+      vault_token: '{{ login_data.login.auth.client_token }}'
 
 - include_tasks: user_keys.yml
   when: user_ssh_path is defined

@@ -1,15 +1,2 @@
 ---
 # vars file for vault-ssh-signed-keys
-
-required_vars:
- - { checkvar: vault_addr, checkmsg: "vault installation to use" }
- - { checkvar: vault_host_role_id, checkmsg: "approle authentiction id to authenticate" }
- - { checkvar: vault_host_secret_id, checkmsg: "approle authentication secret to authenticate" }
-
-user_required_vars:
- - { checkvar: user_ssh_path, checkmsg: "ssh ca path to use for user authentication" }
-
-host_required_vars:
- - { checkvar: sshd_certfile, checkmsg: "sshd certificate to use ( default rsa )" }
- - { checkvar: host_ssh_path, checkmsg: "ssh ca path to use" }
- - { checkvar: host_ssh_role, checkmsg: "ssh role within 'host_ssh_path' to use" }

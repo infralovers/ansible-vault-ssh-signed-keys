@@ -1,23 +1,15 @@
 ---
-
-- name: 0-Check user required variables
-  fail: msg="Variable '{{ item.checkvar }}' is not defined - {{ item.checkmsg }}"
-  when: item.checkvar not in vars
-  with_items: "{{ host_required_vars }}"
-
 - name: load trusted ca from vault
   register: vault_trusted_keys
-  uri:
-    url: "{{ vault_addr }}/v1/{{ user_ssh_path }}/config/ca"
-    body_format: json
-    return_content: true
-    headers:
-      X-Vault-Request: "true"
-      X-Vault-Token: "{{ vault_login.json.auth.client_token }}"
+  delegate_to: localhost
+  become: false
+  community.hashi_vault.vault_read:
+    path: "{{ user_ssh_path }}/config/ca"
+    token: "{{ vault_token }}"
 
-- name: store trausted ca keys
+- name: store trusted ca keys
   copy:
-    content: "{{ vault_trusted_keys.json.data.public_key }}"
+    content: "{{ vault_trusted_keys.data.data.public_key }}"
     dest: "/etc/ssh/trusted-user-ca-keys.pub"
     owner: root
     group: root
@@ -31,13 +23,3 @@
     mode: 0640
   notify:
     - restart sshd
-
-- name: ensure ssh-rsa algorithm is allowed for ca signatures
-  lineinfile:
-    regexp: "^CASignatureAlgorithms"
-    line: "CASignatureAlgorithms ^ssh-rsa"
-    dest: /etc/ssh/sshd_config
-    mode: 0640
-  notify:
-    - restart sshd
-
