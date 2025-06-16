@@ -12,7 +12,7 @@
 
 - name: store trusted ca keys
   copy:
-    content: "{{ vault_trusted_keys.data.public_key }}"
+    content: "{{ vault_trusted_keys.data.data.public_key }}"
     dest: "/etc/ssh/trusted-user-ca-keys.pub"
     owner: root
     group: root
