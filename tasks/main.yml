@@ -1,20 +1,5 @@
 ---
 
-- name: check vault status
-  uri:
-    url: "{{ vault_addr }}/v1/sys/seal-status"
-#    client_cert: "{{ vault_certfile }}"
-    validate_certs: no
-    method: GET
-    body_format: json
-    return_content: yes
-  register: vault_seal_status
-
-- name: fail if the vault server is not awailable
-  fail:
-    msg: "the vault server is sealed"
-  when: vault_seal_status.json.sealed
-
 - name: login to vault with approle
   when: vault_host_secret_id is defined and vault_host_role_id is defined and vault_host_secret_id | length > 0 and vault_host_role_id | length > 0
   block:
