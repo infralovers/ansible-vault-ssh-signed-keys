@@ -1,11 +1,5 @@
 ---
 
-
-- name: 0-Check host required variables
-  fail: msg="Variable '{{ item.checkvar }}' is not defined - {{ item.checkmsg }}"
-  when: item.checkvar not in vars
-  with_items: "{{ host_required_vars }}"
-
 - name: load actual public host key
   set_fact:
     ssh_public_key: "{{ lookup('file', '/etc/ssh/{{ sshd_certfile }}.pub') }}"

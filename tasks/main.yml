@@ -1,10 +1,5 @@
 ---
 
-- name: 0-Check required variables
-  fail: msg="Variable '{{ item }}' is not defined"
-  when: item not in vars
-  with_items: "{{ required_vars }}"
-
 - name: check vault status
   uri:
     url: "{{ vault_addr }}/v1/sys/seal-status"
@@ -21,12 +16,12 @@
   when: vault_seal_status.json.sealed
 
 - name: login to vault with approle
-  register: vault_login
+  when: vault_token is not defined
   uri:
     url: "{{vault_addr}}/v1/auth/approle/login"
     validate_certs: no
     method: POST
-    body: "{ \"role_id\": \"{{ vault_host_role_id}}\", \"secret_id\": \"{{ vault_host_secret_id }}\"}"
+    body: "{ \"role_id\": \"{{ vault_host_role_id }}\", \"secret_id\": \"{{ vault_host_secret_id }}\"}"
     body_format: json
     return_content: yes
     headers:

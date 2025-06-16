@@ -1,10 +1,4 @@
 ---
-
-- name: 0-Check user required variables
-  fail: msg="Variable '{{ item.checkvar }}' is not defined - {{ item.checkmsg }}"
-  when: item.checkvar not in vars
-  with_items: "{{ host_required_vars }}"
-
 - name: load trusted ca from vault
   register: vault_trusted_keys
   uri:
