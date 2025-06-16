@@ -7,9 +7,6 @@
     path: "{{ user_ssh_path }}/config/ca"
     token: "{{ vault_token }}"
 
-- name: debug
-  debug: var=vault_trusted_keys
-
 - name: store trusted ca keys
   copy:
     content: "{{ vault_trusted_keys.data.data.public_key }}"
@@ -26,13 +23,3 @@
     mode: 0640
   notify:
     - restart sshd
-
-- name: ensure ssh-rsa algorithm is allowed for ca signatures
-  lineinfile:
-    regexp: "^CASignatureAlgorithms"
-    line: "CASignatureAlgorithms ^ssh-rsa"
-    dest: /etc/ssh/sshd_config
-    mode: 0640
-  notify:
-    - restart sshd
-
