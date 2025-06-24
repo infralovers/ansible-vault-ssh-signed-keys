@@ -62,10 +62,10 @@
 
 - name: add trust authority configuration
   become: false
-  with_items: 
-  -  "{{ cert_authority_domains }}"
-  when: cert_authority_domains is defined and cert_authority_domains | length > 0
-  lineinfile:
+  template:
+    content: |
+      {% for domain in cert_authority_domains %}
+      @cert-authority {{ domain }} {{ vault_trusted_keys.data.data.public_key }}
+      {% endfor %}
     dest: ~/.ssh/known_hosts
-    regexp: "^@cert-authority {{ item }}"
-    line: "@cert-authority {{ item }} {{ vault_trusted_keys.data.data.public_key }}"
+    mode: 0640
