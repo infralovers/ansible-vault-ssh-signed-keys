@@ -15,9 +15,6 @@
       cert_type: host
       public_key: "{{ ssh_public_key }}"
 
-- name: debug signed host key
-  debug: var=signed_host_key
-
 - name: update signed host key certificate
   become: true
   copy:
@@ -56,6 +53,12 @@
   community.hashi_vault.vault_read:
     path: "{{ host_ssh_path }}/config/ca"
     token: "{{ vault_token }}"
+
+- name: ensure .ssh directory exists
+  become: false
+  file:
+    path: ~/.ssh/
+    state: directory
 
 - name: add trust authority configuration
   become: false
