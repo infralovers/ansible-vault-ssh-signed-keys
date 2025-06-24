@@ -15,10 +15,13 @@
       cert_type: host
       public_key: "{{ ssh_public_key }}"
 
+- name: debug signed host key
+  debug: var=signed_host_key
+
 - name: update signed host key certificate
   become: true
   copy:
-    content: "{{ signed_host_key.data.signed_key }}"
+    content: "{{ signed_host_key.data.data.signed_key }}"
     dest: "/etc/ssh/{{ sshd_certfile }}_signed.pub"
     mode: "0640"
     owner: root
@@ -56,7 +59,10 @@
 
 - name: add trust authority configuration
   become: false
+  with_items: 
+  -  {{ cert_authority_domains }}
+  when: cert_authority_domains is defined and cert_authority_domains | length > 0
   lineinfile:
     dest: ~/.ssh/known_hosts
-    regexp: "^@cert-authority *"
-    line: "@cert-authority * {{ vault_trusted_keys.data.public_key }}"
+    regexp: "^@cert-authority {{ item }}"
+    line: "@cert-authority {{ item }} {{ vault_trusted_keys.data.data.public_key }}"
