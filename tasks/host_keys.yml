@@ -60,7 +60,7 @@
 - name: add trust authority configuration
   become: false
   with_items: 
-  -  {{ cert_authority_domains }}
+  -  "{{ cert_authority_domains }}"
   when: cert_authority_domains is defined and cert_authority_domains | length > 0
   lineinfile:
     dest: ~/.ssh/known_hosts
