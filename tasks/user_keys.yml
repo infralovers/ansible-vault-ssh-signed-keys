@@ -9,19 +9,19 @@
 
 - name: store trusted ca keys
   become: true
-  copy:
+  ansible.builtin.copy:
     content: "{{ vault_trusted_keys.data.data.public_key }}"
     dest: "/etc/ssh/{{ sshd_signed_certfile }}"
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
 
 - name: update ssh config with trusted user ca
   become: true
-  lineinfile:
+  ansible.builtin.lineinfile:
     regexp: "^TrustedUserCAKeys"
     line: "TrustedUserCAKeys /etc/ssh/{{ sshd_signed_certfile }}"
     dest: /etc/ssh/sshd_config
-    mode: 0640
+    mode: "0640"
   notify:
     - restart sshd

@@ -1,7 +1,7 @@
 ---
 
 - name: load actual public host key
-  set_fact:
+  ansible.builtin.set_fact:
     ssh_public_key: "{{ lookup('file', '/etc/ssh/{{ sshd_certfile }}.pub') }}"
 
 - name: generate signed host key
@@ -17,7 +17,7 @@
 
 - name: update signed host key certificate
   become: true
-  copy:
+  ansible.builtin.copy:
     content: "{{ signed_host_key.data.data.signed_key }}"
     dest: "/etc/ssh/{{ sshd_certfile }}_signed.pub"
     mode: "0640"
@@ -28,21 +28,21 @@
 
 - name: ensure ssh config with enabled host key
   become: true
-  lineinfile:
+  ansible.builtin.lineinfile:
     regexp: "^HostKey"
     line: "HostKey /etc/ssh/{{ sshd_certfile }}"
     dest: /etc/ssh/sshd_config
-    mode: 0640
+    mode: "0640"
   notify:
     - restart sshd
 
 - name: update ssh config with signed host certificate from vault
   become: true
-  lineinfile:
+  ansible.builtin.lineinfile:
     regexp: "^HostCertificate"
     line: "HostCertificate /etc/ssh/{{ sshd_certfile }}_signed.pub"
     dest: /etc/ssh/sshd_config
-    mode: 0640
+    mode: "0640"
   notify:
     - restart sshd
 
@@ -56,16 +56,16 @@
 
 - name: ensure .ssh directory exists
   become: false
-  file:
+  ansible.builtin.file:
     path: ~/.ssh/
     state: directory
 
 - name: add trust authority configuration
   become: false
-  template:
+  ansible.builtin.copy:
     content: |
       {% for domain in cert_authority_domains %}
       @cert-authority {{ domain }} {{ vault_trusted_keys.data.data.public_key }}
       {% endfor %}
     dest: ~/.ssh/known_hosts
-    mode: 0640
+    mode: "0644"

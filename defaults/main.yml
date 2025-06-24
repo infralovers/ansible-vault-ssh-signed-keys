@@ -5,5 +5,4 @@ sshd_certfile: "ssh_host_rsa_key"
 
 sshd_signed_certfile: "user_ca_signed"
 
-
-cert_authority_domains: [ "*" ] 
+cert_authority_domains: ["*"]

@@ -1,19 +1,10 @@
 galaxy_info:
+  role_name: vault_ssh_auth
+  namespace: infralovers
   author: infralovers
   description: Configure HashiCorp Vault suppport on SSH authentication backend for user key validation and host key validation
   company: Infralovers
   license: MIT
-  min_ansible_version: 2.6
-
-  platforms:
-    - name: EL
-      versions:
-        - 7
-        - 8
-    - name: Ubuntu
-      versions:
-        - bionic
-        - focal
 
   galaxy_tags: [vault, ssh, security, userkey, hostkey, signedssh]
 

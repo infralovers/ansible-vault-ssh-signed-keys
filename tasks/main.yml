@@ -1,9 +1,9 @@
 ---
 
-- name: login to vault with approle
+- name: Login to vault with approle
   when: vault_host_secret_id is defined and vault_host_role_id is defined and vault_host_secret_id | length > 0 and vault_host_role_id | length > 0
   block:
-  - name: login approle
+  - name: Login approle
     delegate_to: localhost
     become: false
     register: login_data
@@ -14,11 +14,11 @@
       secret_id: "{{ vault_host_secret_id }}"
 
   - name: "Vault - set vault token"
-    set_fact:
+    ansible.builtin.set_fact:
       vault_token: '{{ login_data.login.auth.client_token }}'
 
-- include_tasks: user_keys.yml
+- ansible.builtin.include_tasks: user_keys.yml
   when: user_ssh_path is defined
 
-- include_tasks: host_keys.yml
+- ansible.builtin.include_tasks: host_keys.yml
   when: host_ssh_path is defined
