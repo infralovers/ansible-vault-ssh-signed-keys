@@ -42,6 +42,15 @@
   notify:
     - restart sshd
 
+- name: load actual signed host key
+  register: signed_host_key_file
+  ansible.builtin.slurp:
+    src: "{{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
+
+- name: debug signed host key content
+  ansible.builtin.debug:
+    msg: "{{ signed_host_key_file['content'] | b64decode }}"
+
 - name: ensure ssh config with enabled host key
   ansible.builtin.lineinfile:
     regexp: "^HostKey"
