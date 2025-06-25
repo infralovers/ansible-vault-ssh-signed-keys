@@ -5,7 +5,15 @@
   ansible.builtin.slurp:
     src: "/etc/ssh/{{ sshd_certfile }}.pub"
 
-- name: set facht about public host key
+- name: debug public host key
+  ansible.builtin.debug:
+    var: ssh_public_key_file
+
+- name: debug public host key content
+  ansible.builtin.debug:
+    msg: "{{ ssh_public_key_file['content'] | b64decode }}"
+
+- name: set fact about public host key
   ansible.builtin.set_fact:
     ssh_public_key: "{{ ssh_public_key_file['content'] | b64decode }}"
 
@@ -20,6 +28,10 @@
       cert_type: host
       public_key: "{{ ssh_public_key }}"
 
+- name: debug signed host key
+  ansible.builtin.debug:
+    var: signed_host_key
+
 - name: update signed host key certificate
   become: true
   ansible.builtin.copy:
@@ -30,6 +42,11 @@
     group: root
   notify:
     - restart sshd
+
+- name: fail on purpose if signed host key is not available
+  ansible.builtin.fail:
+    msg: "Stop it!"
+  
 
 - name: ensure ssh config with enabled host key
   become: true
