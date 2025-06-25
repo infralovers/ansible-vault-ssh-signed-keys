@@ -11,7 +11,7 @@
   become: true
   ansible.builtin.copy:
     content: "{{ vault_trusted_keys.data.data.public_key }}"
-    dest: "/etc/ssh/{{ sshd_signed_certfile }}"
+    dest: "{{ ssh_config_dir }}/{{ sshd_signed_certfile }}"
     owner: root
     group: root
     mode: "0640"
@@ -20,8 +20,8 @@
   become: true
   ansible.builtin.lineinfile:
     regexp: "^TrustedUserCAKeys"
-    line: "TrustedUserCAKeys /etc/ssh/{{ sshd_signed_certfile }}"
-    dest: /etc/ssh/sshd_config
+    line: "TrustedUserCAKeys {{ ssh_config_dir }}/{{ sshd_signed_certfile }}"
+    dest: "{{ ssh_config_dir }}/sshd_config"
     mode: "0640"
   notify:
     - restart sshd

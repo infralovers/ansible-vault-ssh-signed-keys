@@ -3,7 +3,7 @@
 - name: load actual public host key
   register: ssh_public_key_file
   ansible.builtin.slurp:
-    src: "/etc/ssh/{{ sshd_certfile }}.pub"
+    src: "{{ ssh_config_dir }}/{{ sshd_certfile }}.pub"
 
 - name: debug public host key
   ansible.builtin.debug:
@@ -33,37 +33,29 @@
     var: signed_host_key
 
 - name: update signed host key certificate
-  become: true
   ansible.builtin.copy:
     content: "{{ signed_host_key.data.data.signed_key }}"
-    dest: "/etc/ssh/{{ sshd_certfile }}_signed.pub"
+    dest: "{{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
     mode: "0640"
     owner: root
     group: root
   notify:
     - restart sshd
 
-- name: fail on purpose if signed host key is not available
-  ansible.builtin.fail:
-    msg: "Stop it!"
-  
-
 - name: ensure ssh config with enabled host key
-  become: true
   ansible.builtin.lineinfile:
     regexp: "^HostKey"
-    line: "HostKey /etc/ssh/{{ sshd_certfile }}"
-    dest: /etc/ssh/sshd_config
+    line: "HostKey {{ ssh_config_dir }}/{{ sshd_certfile }}"
+    dest: "{{ ssh_config_dir }}/sshd_config"
     mode: "0640"
   notify:
     - restart sshd
 
 - name: update ssh config with signed host certificate from vault
-  become: true
   ansible.builtin.lineinfile:
     regexp: "^HostCertificate"
-    line: "HostCertificate /etc/ssh/{{ sshd_certfile }}_signed.pub"
-    dest: /etc/ssh/sshd_config
+    line: "HostCertificate {{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
+    dest: "{{ ssh_config_dir }}/sshd_config"
     mode: "0640"
   notify:
     - restart sshd

@@ -1,5 +1,6 @@
 ---
 # defaults file for vault-ssh-signed-keys
+ssh_config_dir: "/etc/ssh"
 
 sshd_certfile: "ssh_host_rsa_key"
 
