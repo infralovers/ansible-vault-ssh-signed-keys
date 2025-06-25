@@ -1,8 +1,13 @@
 ---
 
 - name: load actual public host key
+  register: ssh_public_key_file
+  ansible.builtin.slurp:
+    src: "/etc/ssh/{{ sshd_certfile }}.pub"
+
+- name: set facht about public host key
   ansible.builtin.set_fact:
-    ssh_public_key: "{{ lookup('file', '/etc/ssh/{{ sshd_certfile }}.pub') }}"
+    ssh_public_key: "{{ ssh_public_key_file['content'] | b64decode }}"
 
 - name: generate signed host key
   register: signed_host_key
