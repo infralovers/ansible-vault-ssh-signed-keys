@@ -5,13 +5,11 @@
   ansible.builtin.slurp:
     src: "{{ ssh_config_dir }}/{{ sshd_certfile }}.pub"
 
-- name: debug public host key
-  ansible.builtin.debug:
-    var: ssh_public_key_file
+- name: load actual public host key
+  register: ssh_private_key_file
+  ansible.builtin.slurp:
+    src: "{{ ssh_config_dir }}/{{ sshd_certfile }}"
 
-- name: debug public host key content
-  ansible.builtin.debug:
-    msg: "{{ ssh_public_key_file['content'] | b64decode }}"
 
 - name: set fact about public host key
   ansible.builtin.set_fact:
@@ -28,33 +26,40 @@
       cert_type: host
       public_key: "{{ ssh_public_key }}"
 
-- name: debug signed host key
-  ansible.builtin.debug:
-    var: signed_host_key
-
-- name: update signed host key certificate
+- name: update host certificate key
   ansible.builtin.copy:
-    content: "{{ signed_host_key.data.data.signed_key }}"
-    dest: "{{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
+    content: "{{ ssh_private_key_file['content'] | b64decode }}"
+    dest: "{{ ssh_config_dir }}/host_key"
     mode: "0640"
     owner: root
     group: root
   notify:
     - restart sshd
 
-- name: load actual signed host key
-  register: signed_host_key_file
-  ansible.builtin.slurp:
-    src: "{{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
+- name: update host certificate pub
+  ansible.builtin.copy:
+    content: "{{ ssh_public_key_file['content'] | b64decode }}"
+    dest: "{{ ssh_config_dir }}/host_key.pub"
+    mode: "0640"
+    owner: root
+    group: root
+  notify:
+    - restart sshd
 
-- name: debug signed host key content
-  ansible.builtin.debug:
-    msg: "{{ signed_host_key_file['content'] | b64decode }}"
+- name: update signed host certificate
+  ansible.builtin.copy:
+    content: "{{ signed_host_key.data.data.signed_key }}"
+    dest: "{{ ssh_config_dir }}/host_key_signed.pub"
+    mode: "0640"
+    owner: root
+    group: root
+  notify:
+    - restart sshd
 
 - name: ensure ssh config with enabled host key
   ansible.builtin.lineinfile:
     regexp: "^HostKey"
-    line: "HostKey {{ ssh_config_dir }}/{{ sshd_certfile }}"
+    line: "HostKey {{ ssh_config_dir }}/host_key"
     dest: "{{ ssh_config_dir }}/sshd_config"
     mode: "0640"
   notify:
@@ -63,7 +68,7 @@
 - name: update ssh config with signed host certificate from vault
   ansible.builtin.lineinfile:
     regexp: "^HostCertificate"
-    line: "HostCertificate {{ ssh_config_dir }}/{{ sshd_certfile }}_signed.pub"
+    line: "HostCertificate {{ ssh_config_dir }}/host_key_signed.pub"
     dest: "{{ ssh_config_dir }}/sshd_config"
     mode: "0640"
   notify:
