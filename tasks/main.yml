@@ -21,4 +21,7 @@
   when: user_ssh_path is defined
 
 - ansible.builtin.include_tasks: host_keys.yml
+  when: host_ssh_path is defined and host_ssh_role is defined
+
+- ansible.builtin.include_tasks: trusted_certs.yml
   when: host_ssh_path is defined
